@@ -2,6 +2,9 @@ import pandas as pd
 import streamlit as st
 
 st.title("Weekly Timesheet Analyzer")
+st.image("assets/logo.png", width=150)
+
+
 
 uploaded_file = st.file_uploader("Upload your Excel timesheet", type=["xlsx"])
 
