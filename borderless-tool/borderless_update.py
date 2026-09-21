@@ -25,9 +25,10 @@ ACCOUNT = "juliocyriaano@theechohouse.com"
 
 # Where the sheet is laid out.
 READ_RANGE = f"{TAB}!A1:ZZ60"
-# The month header row and the week-label row directly beneath it are found
-# at run time (they sit at 11/12 in the current template, 10/11 in an older
-# one), by scanning this many rows from the top.
+# The month header row and the week-label row directly beneath it are found at
+# run time rather than hardcoded. In the JULIO tab they sit at rows 10 and 11
+# (verified against the live sheet); scanning keeps the tool working if a
+# future template shifts them.
 HEADER_SEARCH_ROWS = 20
 LABEL_COLUMNS = (1, 2)  # 0-based: columns B and C hold the row descriptions
 
@@ -240,9 +241,9 @@ def read_payload(path):
 def find_column(grid, month, label):
     """Locate the column matching month and label.
 
-    The month header sits one row above the week labels, but which pair of
-    rows that is has moved between versions of the template, so find it
-    rather than trusting a fixed row number.
+    The month header sits one row above the week labels -- rows 10 and 11 in
+    the current template. Find the pair rather than hardcoding it, so a
+    template that shifts its header rows does not silently match nothing.
     """
     width = max((len(line) for line in grid), default=0)
 
