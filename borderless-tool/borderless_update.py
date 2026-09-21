@@ -25,8 +25,10 @@ ACCOUNT = "juliocyriaano@theechohouse.com"
 
 # Where the sheet is laid out.
 READ_RANGE = f"{TAB}!A1:ZZ60"
-MONTH_ROW = 10          # 1-based; merged across the weeks of that month
-LABEL_ROW = 11          # 1-based; "Week 1".."Week 4", "Monthly Report", ...
+# The month header row and the week-label row directly beneath it are found
+# at run time (they sit at 11/12 in the current template, 10/11 in an older
+# one), by scanning this many rows from the top.
+HEADER_SEARCH_ROWS = 20
 LABEL_COLUMNS = (1, 2)  # 0-based: columns B and C hold the row descriptions
 
 VALID_LABELS = [
@@ -236,37 +238,57 @@ def read_payload(path):
 
 
 def find_column(grid, month, label):
-    """Locate the column whose row 10 month and row 11 label both match."""
+    """Locate the column matching month and label.
+
+    The month header sits one row above the week labels, but which pair of
+    rows that is has moved between versions of the template, so find it
+    rather than trusting a fixed row number.
+    """
     width = max((len(line) for line in grid), default=0)
 
-    months = []
-    carried = ""
-    for col in range(width):
-        value = get_cell(grid, MONTH_ROW, col)
-        if value:
-            carried = value          # merged cell: carry it forward
-        months.append(carried)
+    def months_along(row):
+        """Row's values carried forward across merged cells."""
+        out, carried = [], ""
+        for col in range(width):
+            value = get_cell(grid, row, col)
+            if value:
+                carried = value
+            out.append(carried)
+        return out
 
-    matches = []
-    for col in range(width):
-        if months[col].lower() != month.lower():
-            continue
-        if get_cell(grid, LABEL_ROW, col).lower() != label.lower():
-            continue
-        matches.append(col)
+    matches = []   # (month_row, label_row, col)
+    seen = []      # every month/label pair found, for diagnostics
+    for month_row in range(1, min(len(grid), HEADER_SEARCH_ROWS)):
+        label_row = month_row + 1
+        months = months_along(month_row)
+        for col in range(width):
+            col_label = get_cell(grid, label_row, col)
+            if not months[col] or not col_label:
+                continue
+            seen.append((month_row, label_row, col, months[col], col_label))
+            if (months[col].lower() == month.lower()
+                    and col_label.lower() == label.lower()):
+                matches.append((month_row, label_row, col))
 
     if not matches:
-        available = []
-        for col in range(width):
-            col_label = get_cell(grid, LABEL_ROW, col)
-            if months[col] and col_label:
-                available.append(f"  {col_letter(col)}: {months[col]} / {col_label}")
+        detail = [f"  row {m}/{l}  {col_letter(c)}: {mon} / {lab}"
+                  for m, l, c, mon, lab in seen]
         stop(
             f'No column matches month "{month}" with label "{label}".',
-            "Columns found in the sheet:\n" + ("\n".join(available) or "  (none)"),
+            "Month/label pairs found in the sheet:\n"
+            + ("\n".join(detail) or "  (none)"),
+        )
+
+    # Several row pairs can look plausible if the template repeats headers.
+    rows_hit = {(m, l) for m, l, _ in matches}
+    if len(rows_hit) > 1:
+        where = ", ".join(f"rows {m}/{l}" for m, l in sorted(rows_hit))
+        stop(
+            f'"{month}" / "{label}" appears under more than one header row: {where}.',
+            "I will not guess which one you meant.",
         )
     if len(matches) > 1:
-        found = ", ".join(col_letter(c) for c in matches)
+        found = ", ".join(col_letter(c) for _, _, c in matches)
         stop(
             f'"{month}" / "{label}" matches more than one column: {found}.',
             "I will not guess which one you meant.",
@@ -471,9 +493,9 @@ def main():
         stop(f"{READ_RANGE} came back empty.")
 
     # 1. locate the column
-    col_index = find_column(grid, month, label)
+    month_row, label_row, col_index = find_column(grid, month, label)
     print(f"Matched column {col_letter(col_index)} "
-          f"(row {MONTH_ROW} = {month}, row {LABEL_ROW} = {label})")
+          f"(row {month_row} = {month}, row {label_row} = {label})")
 
     # 2. row label map
     row_labels = build_row_labels(grid)

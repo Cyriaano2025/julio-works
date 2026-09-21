@@ -47,9 +47,11 @@ python3 borderless_update.py input.json             # write
 
 ## What it does
 
-1. Reads `JULIO!A1:ZZ60`. Row 10 holds the month (merged, so it is carried
-   forward across columns), row 11 holds the label. Both must match,
-   case-insensitively, in exactly one column — otherwise it stops.
+1. Reads `JULIO!A1:ZZ60`. Finds the month header row and the week-label row
+   directly beneath it by scanning the first 20 rows — they sit at 11/12 in
+   the current template and 10/11 in an older one. The month is merged, so it
+   is carried forward across columns. Both must match, case-insensitively, in
+   exactly one column — otherwise it stops.
 2. Builds a row-to-label map from columns B and C. The first run saves it as
    `row_labels.json`; later runs stop if a label on a row being written has
    changed.
