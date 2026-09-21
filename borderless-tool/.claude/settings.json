@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python borderless_update.py:*)",
+      "Bash(python3 borderless_update.py:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python3 -m pip install:*)",
+      "Bash(pip install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(cd /home/user/julio-works/borderless-tool && python borderless_update.py:*)",
+      "Bash(cd /home/user/julio-works/borderless-tool && python3 borderless_update.py:*)",
+      "Bash(cd /home/user/julio-works/borderless-tool && pip install:*)",
+      "Bash(cd /home/user/julio-works/borderless-tool && pip3 install:*)",
+      "Bash(cd /home/user/julio-works/borderless-tool && python -m pip install:*)",
+      "Bash(cd /home/user/julio-works/borderless-tool && python3 -m pip install:*)",
+      "Read(//home/user/julio-works/borderless-tool/**)",
+      "Write(//home/user/julio-works/borderless-tool/input.json)"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+# Never commit OAuth secrets or the cached login
+credentials.json
+token.json
+
+# Weekly payload is scratch input
+input.json
+
+__pycache__/
+*.pyc
