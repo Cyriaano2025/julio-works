@@ -2,7 +2,7 @@
 credentials.json
 token.json
 
-# Weekly payload is scratch input
+# Working copy of the current week's payload; the kept ones live in payloads/
 input.json
 
 __pycache__/
